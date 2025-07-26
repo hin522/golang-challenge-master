@@ -1,6 +1,7 @@
 
 DATABASE = docker compose run --rm database
 GOLANG = docker compose run --rm --service-ports golang
+GOLANG_IMAGE = golang:1.24.5-alpine
 
 RED = \033[1;31m
 CYAN = \033[0;36m
@@ -18,10 +19,11 @@ rebuilddb:
 
 .PHONY: run
 run: 
-	$(GOLANG) go run server/main.go
-	echo "$(CYAN)Server exited"
+	docker compose up --build
+	echo "$(CYAN)Server started"
 
 .PHONY: build
 build: 
-	$(GOLANG) go build -o bin/server server/main.go
+	docker run --rm -v ${PWD}:/app -w /app $(GOLANG_IMAGE) \
+	    sh -c "apk add --no-cache git && go build -o bin/server ./server/"
 	echo "$(CYAN)Server built successfully."

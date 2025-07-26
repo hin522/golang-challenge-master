@@ -10,8 +10,6 @@
 
   RUN go build -o bin/server ./server/
 
-  RUN ls -la ./bin/server
-
   RUN chmod +x bin/server
 
   EXPOSE 8080
