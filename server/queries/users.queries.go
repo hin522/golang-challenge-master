@@ -20,7 +20,7 @@ func GetUsers() ([]GetUsersQueryRow, error) {
 	defer conn.Close(context.TODO())
 
 	rows, err := conn.Query(context.TODO(), `
-		SELECT
+		SELECT distinct
 			public.users.id, 
 			public.users.username, 
 			public.users.email,
