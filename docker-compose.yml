@@ -13,6 +13,8 @@ services:
       - POSTGRES_DB=exercise
       - POSTGRES_USER=super_secure_username
       - POSTGRES_PASSWORD=super_secure_password
+    networks:
+      - shared_network
 
   golang:
     build:
@@ -26,6 +28,12 @@ services:
       - "8080:8080"
     env_file:
       - .env
+    networks:
+      - shared_network
 
 volumes:
   database_data:
+
+networks:
+  shared_network:
+    driver: bridge  
