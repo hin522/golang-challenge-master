@@ -13,6 +13,7 @@ type GetUsersQueryRow struct {
 	UserType           string      `db:"user_type"`
 	Nickname           pgtype.Text `db:"nickname"`
 	PermissionBitfield string      `db:"permission_bitfield"`
+	MessageCount       int         `db:"message_count"`
 }
 
 func GetUsers() ([]GetUsersQueryRow, error) {
@@ -20,19 +21,24 @@ func GetUsers() ([]GetUsersQueryRow, error) {
 	defer conn.Close(context.TODO())
 
 	rows, err := conn.Query(context.TODO(), `
-		SELECT distinct
-			public.users.id, 
-			public.users.username, 
-			public.users.email,
-			utype.type_key as "user_type",
-			public.users.nickname,
-			utype.permission_bitfield::text as "permission_bitfield"
-		from 
-			public.users 
-		left join 
-			user_types utype
-		on
-			utype.type_key = public.users.user_type
+		SELECT 
+			u.id, 
+			u.username, 
+			u.email,
+			ut.type_key as "user_type",
+			u.nickname,
+			ut.permission_bitfield::text as "permission_bitfield",
+			COUNT(m.id) AS message_count
+		FROM
+			public.users u
+		LEFT JOIN 
+			public.messages m ON u.username = m.username
+		LEFT JOIN 
+			public.user_types ut ON u.user_type = ut.type_key    
+		GROUP BY 
+			u.id, u.username, u.email, ut.type_key, u.nickname, ut.permission_bitfield
+		ORDER BY 
+			u.id;
 	`)
 
 	if err != nil {
@@ -51,6 +57,7 @@ func GetUsers() ([]GetUsersQueryRow, error) {
 			&user.UserType,
 			&user.Nickname,
 			&user.PermissionBitfield,
+			&user.MessageCount,
 		); err != nil {
 			return nil, err
 		}
@@ -88,4 +95,30 @@ func CreateUser(params CreateUserParams) (int, error) {
 	}
 
 	return userID, nil
+}
+
+type InsertMessageParams struct {
+	Username string
+	Message  string
+}
+
+func InsertMessage(params InsertMessageParams) (int, error) {
+	conn := GetConnection()
+	defer conn.Close(context.TODO())
+
+	var messageID int
+	err := conn.QueryRow(
+		context.TODO(),
+		`INSERT INTO public.messages (username, message)
+		 VALUES ($1, $2)
+		 RETURNING id`,
+		params.Username,
+		params.Message,
+	).Scan(&messageID)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return messageID, nil
 }

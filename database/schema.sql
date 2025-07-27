@@ -30,6 +30,13 @@ CREATE TABLE public.user_types (
 )
 ;
 
+CREATE TABLE public.messages (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    message VARCHAR(250) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+)
+;
 
 /* * * * * * * * * * * * * * * * * * * * * *
  *

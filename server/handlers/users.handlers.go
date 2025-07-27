@@ -17,6 +17,7 @@ type UserResponse struct {
 	Email    string  `json:"email"`
 	UserType string  `json:"userType"`
 	Nickname *string `json:"nickname,omitempty"`
+	MessageCount int `json:"messsageCount"`
 }
 
 func GetUsers(c *gin.Context) {
@@ -44,6 +45,7 @@ func GetUsers(c *gin.Context) {
 			Email:    row.Email,
 			UserType: row.UserType,
 			Nickname: nickname,
+			MessageCount: row.MessageCount,
 		})
 	}
 
@@ -93,4 +95,36 @@ func CreateUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, CreateUserResponse{ID: id})
+}
+
+type CreateMessageRequest struct {
+	Username string `json:"username" binding:"required"`
+	Message  string `json:"message" binding:"required"`
+}
+
+type CreateMessageResponse struct {
+	ID int `json:"id"`
+}
+
+func CreateMessage(c *gin.Context) {
+	var req CreateMessageRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid input: " + err.Error(),
+		})
+		return
+	}
+
+	id, err := queries.InsertMessage(queries.InsertMessageParams{
+		Username: req.Username,
+		Message:  req.Message,
+	})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to create message: " + err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, CreateMessageResponse{ID: id})
 }
