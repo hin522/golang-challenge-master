@@ -59,3 +59,33 @@ func GetUsers() ([]GetUsersQueryRow, error) {
 
 	return users, err
 }
+
+type CreateUserParams struct {
+	Username string
+	Email    string
+	UserType string
+	Nickname string
+}
+
+func CreateUser(params CreateUserParams) (int, error) {
+	conn := GetConnection()
+	defer conn.Close(context.TODO())
+
+	var userID int
+	err := conn.QueryRow(
+		context.TODO(),
+		`INSERT INTO public.users (username, email, user_type, nickname)
+		 VALUES ($1, $2, $3, $4)
+		 RETURNING id`,
+		params.Username,
+		params.Email,
+		params.UserType,
+		params.Nickname,
+	).Scan(&userID)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return userID, nil
+}
