@@ -128,3 +128,29 @@ func CreateMessage(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, CreateMessageResponse{ID: id})
 }
+
+type RemoveNicknameRequest struct {
+	Username string `json:"username" binding:"required"`
+}
+
+func RemoveUserNickname(c *gin.Context) {
+	var req RemoveNicknameRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid input: " + err.Error(),
+		})
+		return
+	}
+
+	err := queries.RemoveUserNickname(req.Username)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to remove nickname: " + err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Nickname removed successfully",
+	})
+}

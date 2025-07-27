@@ -122,3 +122,18 @@ func InsertMessage(params InsertMessageParams) (int, error) {
 
 	return messageID, nil
 }
+
+func RemoveUserNickname(username string) error {
+	conn := GetConnection()
+	defer conn.Close(context.TODO())
+
+	_, err := conn.Exec(
+		context.TODO(),
+		`UPDATE public.users
+		 SET nickname = NULL
+		 WHERE username = $1`,
+		username,
+	)
+
+	return err
+}

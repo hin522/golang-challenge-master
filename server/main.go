@@ -15,6 +15,7 @@ func main() {
 	r.GET("/users", handlers.GetUsers)
 	r.POST("/users", handlers.CreateUser)
 	r.POST("/users/messages", handlers.CreateMessage)
+	r.PATCH("/users/remove-nickname", handlers.RemoveUserNickname)
 
 	r.Run()
 }
